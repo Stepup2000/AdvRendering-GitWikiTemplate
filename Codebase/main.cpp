@@ -38,6 +38,7 @@ bool spacePressedLastFrame = false;
 
 // ------------------ Post-processing ------------------
 bool enableBloom = false;
+bool enableSobel = false;
 bool enableGrayscale = false;
 bool enableInvert = false;
 
@@ -220,12 +221,14 @@ int main(){
     std::string brightFS = readFileToString("shaders/bright.fs");
     std::string gaussianFS = readFileToString("shaders/gaussian.fs");
     std::string combineFS = readFileToString("shaders/combine.fs");
+    std::string sobelFS = readFileToString("shaders/sobel.fs");
     std::string grayscaleFS = readFileToString("shaders/grayscale.fs");
     std::string invertFS = readFileToString("shaders/invert.fs");
 
     GLuint brightShader = createShaderProgram(quadVS.c_str(), brightFS.c_str());
     GLuint gaussianShader = createShaderProgram(quadVS.c_str(), gaussianFS.c_str());
     GLuint combineShader = createShaderProgram(quadVS.c_str(), combineFS.c_str());
+    GLuint sobelShader = createShaderProgram(quadVS.c_str(), sobelFS.c_str());
     GLuint grayscaleShader = createShaderProgram(quadVS.c_str(), grayscaleFS.c_str());
     GLuint invertShader = createShaderProgram(quadVS.c_str(), invertFS.c_str());
 
@@ -389,6 +392,15 @@ int main(){
 
             quad.render();
         }
+        else if(enableSobel){
+            glUseProgram(sobelShader);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, sceneTex);
+            glUniform1i(glGetUniformLocation(sobelShader,"sceneTex"),0);
+
+            quad.render();
+        }
         else if(enableGrayscale){
             glUseProgram(grayscaleShader);
 
@@ -428,6 +440,7 @@ int main(){
         ImGui::Text("SPACE to switch scenes");
         ImGui::Text("Current: %s", currentScene==SceneId::Scene1?"Scene 1":"Scene 2");
         ImGui::Text("FPS: %.1f", fps);
+        ImGui::Checkbox("Sobel",&enableSobel);
         ImGui::Checkbox("Bloom",&enableBloom);
         ImGui::SliderFloat("Bloom threshold",&bloomThreshold,0.0f,1.0f);
         ImGui::SliderFloat("Bloom intensity",&bloomIntensity,0.0f,5.0f);
@@ -446,6 +459,7 @@ int main(){
     glDeleteProgram(brightShader);
     glDeleteProgram(gaussianShader);
     glDeleteProgram(combineShader);
+    glDeleteProgram(sobelShader);
     glDeleteProgram(grayscaleShader);
     glDeleteProgram(invertShader);
 
