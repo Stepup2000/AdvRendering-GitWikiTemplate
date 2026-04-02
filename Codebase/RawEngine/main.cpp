@@ -45,7 +45,7 @@ bool enableInvert = false;
 float bloomThreshold = 0.8f;
 float bloomIntensity = 1.5f;
 
-int kernelSize = 7; // 3, 5, 7
+int sobelKernelSize = 7; // 3, 5, 7
 
 // ------------------ Framebuffers ------------------
 GLuint sceneFBO, sceneTex, sceneRBO;
@@ -278,12 +278,13 @@ int main(){
         deltaTime = float(now-lastTime);
         lastTime = now;
 
-        fpsAccumulator += 1.0f/deltaTime; fpsFrames++; fpsTimer += deltaTime;
-        if(fpsTimer >= 0.5) {
-            fps = fpsAccumulator/fpsFrames;
+        fpsAccumulator += 1.0f / deltaTime;
+        fpsFrames++;
+
+        if (fpsFrames >= 100) {
+            fps = fpsAccumulator / fpsFrames;
             fpsAccumulator = 0;
             fpsFrames = 0;
-            fpsTimer = 0;
         }
 
         //Mouse input
@@ -401,7 +402,7 @@ int main(){
             glBindTexture(GL_TEXTURE_2D, sceneTex);
             glUniform1i(glGetUniformLocation(sobelShader,"sceneTex"),0);
 
-            glUniform1i(glGetUniformLocation(sobelShader,"kernelSize"), kernelSize);
+            glUniform1i(glGetUniformLocation(sobelShader,"kernelSize"), sobelKernelSize);
 
             quad.render();
         }
@@ -451,10 +452,10 @@ int main(){
         //ImGui::Checkbox("Invert colors",&enableInvert);
 
         const char* kernelOptions[] = { "3x3", "5x5", "7x7" };
-        int kernelIndex = (kernelSize == 3 ? 0 : kernelSize == 5 ? 1 : 2);
+        int kernelIndex = (sobelKernelSize == 3 ? 0 : sobelKernelSize == 5 ? 1 : 2);
 
         if(ImGui::Combo("Kernel Size", &kernelIndex, kernelOptions, 3)){
-            kernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
+            sobelKernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
         }
         ImGui::Checkbox("Sobel",&enableSobel);
 
