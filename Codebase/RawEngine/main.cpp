@@ -45,6 +45,8 @@ bool enableInvert = false;
 float bloomThreshold = 0.8f;
 float bloomIntensity = 1.5f;
 
+int kernelSize = 7; // 3, 5, 7
+
 // ------------------ Framebuffers ------------------
 GLuint sceneFBO, sceneTex, sceneRBO;
 GLuint brightFBO, brightTex;
@@ -399,6 +401,8 @@ int main(){
             glBindTexture(GL_TEXTURE_2D, sceneTex);
             glUniform1i(glGetUniformLocation(sobelShader,"sceneTex"),0);
 
+            glUniform1i(glGetUniformLocation(sobelShader,"kernelSize"), kernelSize);
+
             quad.render();
         }
         else if(enableGrayscale){
@@ -440,12 +444,20 @@ int main(){
         ImGui::Text("SPACE to switch scenes");
         ImGui::Text("Current: %s", currentScene==SceneId::Scene1?"Scene 1":"Scene 2");
         ImGui::Text("FPS: %.1f", fps);
-        ImGui::Checkbox("Bloom",&enableBloom);
-        ImGui::SliderFloat("Bloom threshold",&bloomThreshold,0.0f,1.0f);
-        ImGui::SliderFloat("Bloom intensity",&bloomIntensity,0.0f,5.0f);
+        //ImGui::Checkbox("Bloom",&enableBloom);
+        //ImGui::SliderFloat("Bloom threshold",&bloomThreshold,0.0f,1.0f);
+        //ImGui::SliderFloat("Bloom intensity",&bloomIntensity,0.0f,5.0f);
+        //ImGui::Checkbox("Grayscale",&enableGrayscale);
+        //ImGui::Checkbox("Invert colors",&enableInvert);
+
+        const char* kernelOptions[] = { "3x3", "5x5", "7x7" };
+        int kernelIndex = (kernelSize == 3 ? 0 : kernelSize == 5 ? 1 : 2);
+
+        if(ImGui::Combo("Kernel Size", &kernelIndex, kernelOptions, 3)){
+            kernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
+        }
         ImGui::Checkbox("Sobel",&enableSobel);
-        ImGui::Checkbox("Grayscale",&enableGrayscale);
-        ImGui::Checkbox("Invert colors",&enableInvert);
+
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
