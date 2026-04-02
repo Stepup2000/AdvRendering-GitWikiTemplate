@@ -440,10 +440,10 @@ int main(){
         ImGui::Text("SPACE to switch scenes");
         ImGui::Text("Current: %s", currentScene==SceneId::Scene1?"Scene 1":"Scene 2");
         ImGui::Text("FPS: %.1f", fps);
-        ImGui::Checkbox("Sobel",&enableSobel);
         ImGui::Checkbox("Bloom",&enableBloom);
         ImGui::SliderFloat("Bloom threshold",&bloomThreshold,0.0f,1.0f);
         ImGui::SliderFloat("Bloom intensity",&bloomIntensity,0.0f,5.0f);
+        ImGui::Checkbox("Sobel",&enableSobel);
         ImGui::Checkbox("Grayscale",&enableGrayscale);
         ImGui::Checkbox("Invert colors",&enableInvert);
         ImGui::End();
