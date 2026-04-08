@@ -151,6 +151,16 @@ void createFramebuffer(GLuint &FBO, GLuint &colorTex, GLuint &RBO, int width, in
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
+bool recordDeltaTime = false;
+std::vector<float> deltaTimeBuffer;
+const int maxFrames = 100;
+
+// Placeholder for CSV writing
+void writeCSV(const std::vector<float>& data) {
+    std::cout << "Captured " << data.size() << " deltaTime values.\n";
+    // CSV logic goes here
+}
+
 // ------------------ Main ------------------
 int main(){
     glfwInit();
@@ -273,18 +283,32 @@ int main(){
 
     // ------------------ Main Loop ------------------
     while(!glfwWindowShouldClose(window)){
-        //Calculate time and FPS
-        double now = glfwGetTime();
-        deltaTime = float(now-lastTime);
-        lastTime = now;
+        double currentTime = glfwGetTime();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
 
-        fpsAccumulator += 1.0f / deltaTime;
+        if (deltaTime > 0.0f)
+            fps = 1.0f / deltaTime;
+
+        // Accumulate time and frames
+        fpsAccumulator += deltaTime;
         fpsFrames++;
 
-        if (fpsFrames >= 100) {
-            fps = fpsAccumulator / fpsFrames;
-            fpsAccumulator = 0;
+        // Update FPS once per second
+        if (fpsAccumulator >= 1.0f) {
+            fps = fpsFrames / fpsAccumulator;  // average FPS over ~1 second
+            fpsAccumulator = 0.0f;
             fpsFrames = 0;
+        }
+
+        // ------------------ FrameTime Recording ------------------
+        if(recordDeltaTime) {
+            deltaTimeBuffer.push_back(deltaTime);
+
+            if(deltaTimeBuffer.size() >= maxFrames) {
+                recordDeltaTime = false;
+                writeCSV(deltaTimeBuffer);
+            }
         }
 
         //Mouse input
@@ -458,6 +482,12 @@ int main(){
             sobelKernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
         }
         ImGui::Checkbox("Sobel",&enableSobel);
+
+        // Record deltaTime button
+        if(ImGui::Button("Record 100 Frames")) {
+            recordDeltaTime = true;
+            deltaTimeBuffer.clear();
+        }
 
         ImGui::End();
         ImGui::Render();
