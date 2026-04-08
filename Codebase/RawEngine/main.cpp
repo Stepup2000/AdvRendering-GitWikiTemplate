@@ -47,6 +47,12 @@ float bloomIntensity = 1.5f;
 
 int sobelKernelSize = 7; // 3, 5, 7
 
+// ------------------ FPS ---------------------------
+bool recordDeltaTime = false;
+float displayedFPS = 0;
+std::vector<float> deltaTimeBuffer;
+const int maxFrames = 100;
+
 // ------------------ Framebuffers ------------------
 GLuint sceneFBO, sceneTex, sceneRBO;
 GLuint brightFBO, brightTex;
@@ -151,11 +157,6 @@ void createFramebuffer(GLuint &FBO, GLuint &colorTex, GLuint &RBO, int width, in
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
-bool recordDeltaTime = false;
-std::vector<float> deltaTimeBuffer;
-const int maxFrames = 100;
-
-// Placeholder for CSV writing
 void writeCSV(const std::vector<float>& data) {
     std::cout << "Captured " << data.size() << " deltaTime values.\n";
     // CSV logic goes here
@@ -299,6 +300,7 @@ int main(){
             fps = fpsFrames / fpsAccumulator;  // average FPS over ~1 second
             fpsAccumulator = 0.0f;
             fpsFrames = 0;
+            displayedFPS = fps;
         }
 
         // ------------------ FrameTime Recording ------------------
@@ -468,12 +470,7 @@ int main(){
         ImGui::Begin("Scene");
         ImGui::Text("SPACE to switch scenes");
         ImGui::Text("Current: %s", currentScene==SceneId::Scene1?"Scene 1":"Scene 2");
-        ImGui::Text("FPS: %.1f", fps);
-        //ImGui::Checkbox("Bloom",&enableBloom);
-        //ImGui::SliderFloat("Bloom threshold",&bloomThreshold,0.0f,1.0f);
-        //ImGui::SliderFloat("Bloom intensity",&bloomIntensity,0.0f,5.0f);
-        //ImGui::Checkbox("Grayscale",&enableGrayscale);
-        //ImGui::Checkbox("Invert colors",&enableInvert);
+        ImGui::Text("FPS: %.1f", displayedFPS);
 
         const char* kernelOptions[] = { "3x3", "5x5", "7x7" };
         int kernelIndex = (sobelKernelSize == 3 ? 0 : sobelKernelSize == 5 ? 1 : 2);
@@ -512,8 +509,3 @@ int main(){
     glfwTerminate();
     return 0;
 }
-
-//Feedback from first attempt:
-//Make the monkeys have different colors
-//Make the shaders into files
-//Improve explanation on sobel, lum etc.
