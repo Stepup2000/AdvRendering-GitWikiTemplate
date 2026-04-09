@@ -157,9 +157,30 @@ void createFramebuffer(GLuint &FBO, GLuint &colorTex, GLuint &RBO, int width, in
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
-void writeCSV(const std::vector<float>& data) {
-    std::cout << "Captured " << data.size() << " deltaTime values.\n";
-    // CSV logic goes here
+void writeCSV(const std::vector<float>& frameTimes)
+{
+    const std::string filename = "frame_times.csv";
+    std::ofstream file(filename);
+
+    if (!file) {
+        std::cerr << "Error: Could not open " << filename << " for writing.\n";
+        return;
+    }
+
+    // Write header
+    file << "Frame;DeltaTime;FPS\n";
+
+    for (size_t frame = 0; frame < frameTimes.size(); ++frame)
+    {
+        const float deltaTime = frameTimes[frame];
+        const float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
+
+        file << frame << ";"
+             << deltaTime << ";"
+             << fps << "\n";
+    }
+
+    std::cout << "Saved " << frameTimes.size() << " frames to " << filename << "\n";
 }
 
 // ------------------ Main ------------------
