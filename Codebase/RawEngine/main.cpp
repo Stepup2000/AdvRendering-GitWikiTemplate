@@ -159,7 +159,17 @@ void createFramebuffer(GLuint &FBO, GLuint &colorTex, GLuint &RBO, int width, in
 
 void writeCSV(const std::vector<float>& frameTimes)
 {
-    const std::string filename = "frame_times.csv";
+    std::string filename = "frameTimes";
+
+    if (enableSobel) {
+        filename += "_sobel_" + std::to_string(sobelKernelSize) + "x" + std::to_string(sobelKernelSize);
+    } else {
+        filename += "_none";
+    }
+
+    filename += "_" + std::to_string(g_width) + "x" + std::to_string(g_height);
+    filename += ".csv";
+
     std::ofstream file(filename);
 
     if (!file) {
