@@ -39,13 +39,14 @@ bool spacePressedLastFrame = false;
 // ------------------ Post-processing ------------------
 bool enableBloom = false;
 bool enableSobel = false;
+bool enableLaplacian = false;
 bool enableGrayscale = false;
 bool enableInvert = false;
 
 float bloomThreshold = 0.8f;
 float bloomIntensity = 1.5f;
 
-int sobelKernelSize = 7; // 3, 5, 7
+int kernelSize = 3; // 3, 5, 7
 
 // ------------------ FPS ---------------------------
 bool recordDeltaTime = false;
@@ -162,11 +163,14 @@ void writeCSV(const std::vector<float>& frameTimes)
     std::string filename = "frameTimes";
 
     if (enableSobel) {
-        filename += "_sobel_" + std::to_string(sobelKernelSize) + "x" + std::to_string(sobelKernelSize);
+        filename += "_sobel_";
+    } else if (enableLaplacian) {
+        filename += "_laplacian_";
     } else {
-        filename += "_none";
+        filename += "_base_";
     }
 
+    filename += std::to_string(kernelSize) + "x" + std::to_string(kernelSize);
     filename += "_" + std::to_string(g_width) + "x" + std::to_string(g_height);
     filename += ".csv";
 
@@ -268,6 +272,7 @@ int main(){
     std::string sobelFS = readFileToString("shaders/sobel.fs");
     std::string grayscaleFS = readFileToString("shaders/grayscale.fs");
     std::string invertFS = readFileToString("shaders/invert.fs");
+    std::string laplacianFS = readFileToString("shaders/laplacian.fs");
 
     GLuint brightShader = createShaderProgram(quadVS.c_str(), brightFS.c_str());
     GLuint gaussianShader = createShaderProgram(quadVS.c_str(), gaussianFS.c_str());
@@ -275,6 +280,7 @@ int main(){
     GLuint sobelShader = createShaderProgram(quadVS.c_str(), sobelFS.c_str());
     GLuint grayscaleShader = createShaderProgram(quadVS.c_str(), grayscaleFS.c_str());
     GLuint invertShader = createShaderProgram(quadVS.c_str(), invertFS.c_str());
+    GLuint laplacianShader = createShaderProgram(quadVS.c_str(), laplacianFS.c_str());
 
     // ------------------ Framebuffers ------------------
     createFramebuffer(sceneFBO, sceneTex, sceneRBO, g_width, g_height);
@@ -437,47 +443,25 @@ int main(){
         // --------- Final combine ---------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
-        if(enableBloom){
-            glUseProgram(combineShader);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, sceneTex);
-            glUniform1i(glGetUniformLocation(combineShader,"scene"),0);
-
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, pingpongTex[!horizontal]);
-            glUniform1i(glGetUniformLocation(combineShader,"bloomBlur"),1);
-
-            glUniform1f(glGetUniformLocation(combineShader,"intensity"), bloomIntensity);
-
-            quad.render();
-        }
-        else if(enableSobel){
+        if(enableSobel){
             glUseProgram(sobelShader);
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, sceneTex);
             glUniform1i(glGetUniformLocation(sobelShader,"sceneTex"),0);
 
-            glUniform1i(glGetUniformLocation(sobelShader,"kernelSize"), sobelKernelSize);
+            glUniform1i(glGetUniformLocation(sobelShader,"kernelSize"), kernelSize);
 
             quad.render();
         }
-        else if(enableGrayscale){
-            glUseProgram(grayscaleShader);
+        else if(enableLaplacian){
+            glUseProgram(laplacianShader);
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, sceneTex);
-            glUniform1i(glGetUniformLocation(grayscaleShader,"sceneTex"),0);
+            glUniform1i(glGetUniformLocation(laplacianShader,"sceneTex"),0);
 
-            quad.render();
-        }
-        else if(enableInvert){
-            glUseProgram(invertShader);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, sceneTex);
-            glUniform1i(glGetUniformLocation(invertShader,"sceneTex"),0);
+            glUniform1i(glGetUniformLocation(laplacianShader,"kernelSize"), kernelSize);
 
             quad.render();
         }
@@ -504,12 +488,19 @@ int main(){
         ImGui::Text("FPS: %.1f", displayedFPS);
 
         const char* kernelOptions[] = { "3x3", "5x5", "7x7" };
-        int kernelIndex = (sobelKernelSize == 3 ? 0 : sobelKernelSize == 5 ? 1 : 2);
+        int kernelIndex = (kernelSize == 3 ? 0 : kernelSize == 5 ? 1 : 2);
 
         if(ImGui::Combo("Kernel Size", &kernelIndex, kernelOptions, 3)){
-            sobelKernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
+            kernelSize = (kernelIndex == 0 ? 3 : kernelIndex == 1 ? 5 : 7);
         }
-        ImGui::Checkbox("Sobel",&enableSobel);
+
+        if (ImGui::Checkbox("Sobel", &enableSobel)) {
+            enableLaplacian = false;
+        }
+
+        if (ImGui::Checkbox("Laplacian", &enableLaplacian)) {
+            enableSobel = false;
+        }
 
         // Record deltaTime button
         if(ImGui::Button("Record 100 Frames")) {
@@ -531,6 +522,7 @@ int main(){
     glDeleteProgram(gaussianShader);
     glDeleteProgram(combineShader);
     glDeleteProgram(sobelShader);
+    glDeleteProgram(laplacianShader);
     glDeleteProgram(grayscaleShader);
     glDeleteProgram(invertShader);
 
