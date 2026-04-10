@@ -506,6 +506,9 @@ int main(){
         if(ImGui::Button("Record 100 Frames")) {
             recordDeltaTime = true;
             deltaTimeBuffer.clear();
+
+            // Reset rotation of Scene 1
+            scene1[0] = cube;
         }
 
         ImGui::End();
