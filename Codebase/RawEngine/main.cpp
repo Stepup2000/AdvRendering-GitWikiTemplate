@@ -22,7 +22,7 @@
 #endif
 
 // ------------------ Window + Camera ------------------
-int g_width = 800, g_height = 600;
+int g_width = 1600, g_height = 1200;
 glm::vec3 cameraPos(0.0f,0.0f,10.0f);
 glm::vec3 cameraFront(0.0f,0.0f,-1.0f);
 glm::vec3 cameraUp(0.0f,1.0f,0.0f);
@@ -187,7 +187,7 @@ void writeCSV(const std::vector<float>& frameTimes)
     for (size_t frame = 0; frame < frameTimes.size(); ++frame)
     {
         const float deltaTime = frameTimes[frame];
-        const float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
+        int fps = (deltaTime > 0.0f) ? (int)std::round(1.0f / deltaTime) : 0;
 
         file << frame << ";"
              << deltaTime << ";"
