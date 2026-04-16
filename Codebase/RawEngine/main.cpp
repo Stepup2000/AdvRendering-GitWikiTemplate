@@ -22,7 +22,7 @@
 #endif
 
 // ------------------ Window + Camera ------------------
-int g_width = 1600, g_height = 1200;
+int g_width = 800, g_height = 600;
 glm::vec3 cameraPos(0.0f,0.0f,10.0f);
 glm::vec3 cameraFront(0.0f,0.0f,-1.0f);
 glm::vec3 cameraUp(0.0f,1.0f,0.0f);
